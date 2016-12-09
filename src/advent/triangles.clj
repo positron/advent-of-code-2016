@@ -18,13 +18,27 @@
 ; triangles specified horizontally, 1 per line
 (def get-triangles-puzzle-1 identity)
 
+(defn transpose
+  "Returns the columns of a list of lists"
+  [three-lines]
+  (apply map list three-lines))
+
+; triangles specified vertically, 3 per 3 lines
+(defn get-triangles-puzzle-2
+  [lines]
+  (->> lines
+      (partition 3)
+      (map transpose)
+      ; flatten 1 level (reverse the partition 3)
+      (mapcat identity)))
+
 (defn print-num-legal-triangles
   []
   (->> (read-triangles)
        (map str/trim)
        (map #(str/split % #"\s+"))
        (map #(map (fn [s] (Integer/parseInt s)) %))
-       get-triangles-puzzle-1
+       get-triangles-puzzle-2
        (filter is-triangle-legal?)
        count
        (str "Number of legal triangles: ")
