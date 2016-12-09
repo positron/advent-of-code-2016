@@ -9,39 +9,43 @@
       str/trim
       (str/split #"\n")))
 
-(defn pos->digit
-  "[1 0] is the digit 2"
-  [[x y]]
-  (let [keypad [[1 2 3]
-                [4 5 6]
-                [7 8 9]]]
-    (-> keypad
-        (nth y)
-        (nth x))))
+(def keypad
+ [[nil nil "1" nil nil]
+  [nil "2" "3" "4" nil]
+  ["5" "6" "7" "8" "9"]
+  [nil "A" "B" "C" nil]
+  [nil nil "D" nil nil]])
 
-(defn coerce
-  "Applies f to n then coerces to the range [0, 3)"
-  [f n]
-  (-> n
-      f
-      (min 2)
-      (max 0)))
+(defn pos->digit
+  "Look up digits on the keypad. Returns nil if the argument is out of bounds."
+  [[x y]]
+  (some-> keypad
+      (nth y nil)
+      (nth x nil)))
 
 (defmulti next-pos (fn [pos dir] dir))
 
-(defmethod next-pos :U [[x y] dir] [x (coerce dec y)])
-(defmethod next-pos :D [[x y] dir] [x (coerce inc y)])
-(defmethod next-pos :R [[x y] dir] [(coerce inc x) y])
-(defmethod next-pos :L [[x y] dir] [(coerce dec x) y])
+(defmethod next-pos :U [[x y] dir] [x (dec y)])
+(defmethod next-pos :D [[x y] dir] [x (inc y)])
+(defmethod next-pos :R [[x y] dir] [(inc x) y])
+(defmethod next-pos :L [[x y] dir] [(dec x) y])
+
+(defn coerce-next-pos
+  [pos dir]
+  (let [new-pos (next-pos pos dir)]
+    (if (pos->digit new-pos)
+      new-pos
+      pos)))
 
 (defn calculate-bathroom-num
-  [directions]
-  (reduce next-pos [1 1] (map (comp keyword str) directions)))
+  [positions directions]
+  (conj positions (reduce coerce-next-pos (last positions) (map (comp keyword str) directions))))
 
 (defn calculate-bathroom-code
   [puzzle]
   (->> puzzle
-      (map calculate-bathroom-num)
+      (reduce calculate-bathroom-num [[0 2]])
+      rest ; chop off the initial [0 2]
       (map pos->digit)
       str/join
       (println "Bathroom code: ")))
