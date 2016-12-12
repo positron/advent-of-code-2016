@@ -3,3 +3,5 @@
 http://adventofcode.com/
 
 I probably won't do it all. Fun though!
+
+Each file is self contained and only uses the standard library.
